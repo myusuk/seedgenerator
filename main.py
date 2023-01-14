@@ -45,10 +45,18 @@ class SelectParam(Enum):
 class enumParam(Enum):
     ENUM_NAME = "enumName"
     ENUM_LIST = "enumList"
+    RUNDOM_INDEX_LIST = "rundumIndexList"
 
 class serialParam(Enum):
-    SERIAL_NUMBER_NAME = "serialNumberName"
+    INSERT_COLUMN_NAME = "insertColumnName"
     SERIAL_NUMBER_LIST = "serialNumberList"
+
+def generateRundumNumberList(insertRecordLength, targetList):
+    rundumIndexList = []
+    max = len(targetList) - 1
+    for i in range(insertRecordLength):
+        rundumIndexList.append(random.randint(0, max))
+    return rundumIndexList
 
 def createInsertQuery(insertTableName, insertDataMapList, insertFormat):
     insertColumn = ""
@@ -62,7 +70,7 @@ def createInsertQuery(insertTableName, insertDataMapList, insertFormat):
     insertValue = "("
     for i, formatMap in enumerate(insertFormat):
         for j, insertDataMap in enumerate(insertDataMapList):
-            insertValue += str(formatMap[insertDataMap[InsertParam.SELECT_COLUMN_NAME.value]])
+            insertValue += str(formatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]])
             if j != insertColumnLength - 1:
                 insertValue += ", "
         insertValue += ")"
@@ -72,36 +80,30 @@ def createInsertQuery(insertTableName, insertDataMapList, insertFormat):
     sql = "INSERT INTO " + insertTableName + " (" + insertColumn + ") VALUES " + insertValue + ";"
     return sql
 
-def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList):
+def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList):
     tableFormatMapList = []
     for i in range(insertRecordLength):
         tableFormatMap = {}
-        for j, insertDataMap in enumerate(insertDataMapList):
+        for insertDataMap in insertDataMapList:
             if (insertDataMap[InsertParam.DATA_TYPE.value] == InsertDataType.TABLE.value):
-                selectTableName = insertDataMap[InsertParam.SELECT_TABLE_NAME.value]
-                selectColumnName = insertDataMap[InsertParam.SELECT_COLUMN_NAME.value]
-                for k, selectDataMap in enumerate(selectDataMapList):
-                    if (selectDataMap[SelectParam.TABLE_NAME.value] != selectTableName):
+                for selectDataMap in selectDataMapList:
+                    if (selectDataMap[SelectParam.TABLE_NAME.value] != insertDataMap[InsertParam.SELECT_TABLE_NAME.value]):
                         continue
                     columnNameList = selectDataMap[SelectParam.COLUMN_NAME_LIST.value]
                     for l, clumnName in enumerate(columnNameList):
-                        if clumnName != selectColumnName:
+                        if clumnName != insertDataMap[InsertParam.SELECT_COLUMN_NAME.value]:
                             continue
                         tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = selectDataMap[SelectParam.SELECT_DATA.value][selectDataMap[SelectParam.RUNDOM_INDEX_LIST.value][i]][columnNameList[l]]
                         break
+            elif (insertDataMap[InsertParam.DATA_TYPE.value] == InsertDataType.SERIAL_NUMBER.value):
+                for serialNumberMap in serialNumberMapList:
+                    if (serialNumberMap[serialParam.INSERT_COLUMN_NAME.value] != insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]):
+                        continue
+                    tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = serialNumberMap[serialParam.SERIAL_NUMBER_LIST.value][i]
+                    break
         tableFormatMapList.append(tableFormatMap)
     return tableFormatMapList
 
-def generateRundumNumberList(insertRecordLength, selectDataMapList):
-    for i, selectDataMap in enumerate(selectDataMapList):
-        rundumIndexList = []
-        max = len(selectDataMap[SelectParam.SELECT_DATA.value]) - 1
-        for j in range(insertRecordLength):
-            rundumIndexList.append(random.randint(0, max))
-        selectDataMap[SelectParam.RUNDOM_INDEX_LIST.value] = rundumIndexList
-        selectDataMapList[i] = selectDataMap
-    return selectDataMapList
-        
 def selectMasterData(insertDataMapList):
     def createSelectFormat(insertDataMapList):
         selectFormat = []
@@ -145,8 +147,9 @@ def selectMasterData(insertDataMapList):
             database="db_example"
         )
     
+    selectDataMapList = []
     selectFormat = createSelectFormat(insertDataMapList)
-    for i, selectTableMap in enumerate(selectFormat):
+    for selectTableMap in selectFormat:
         tableName = selectTableMap[SelectParam.TABLE_NAME.value]
         columnNameList = selectTableMap[SelectParam.COLUMN_NAME_LIST.value]
         columnNameListLength = len(columnNameList)
@@ -162,20 +165,34 @@ def selectMasterData(insertDataMapList):
                 masterDataMap[columnNameList[j]] = record[j]
                 masterDataMapList.append(masterDataMap)
         selectTableMap[SelectParam.SELECT_DATA.value] = masterDataMapList
-        selectFormat[i] = selectTableMap
+        selectTableMap[SelectParam.RUNDOM_INDEX_LIST.value] = generateRundumNumberList(insertRecordLength, masterDataMapList)
+        selectDataMapList.append(selectTableMap)
     cursor.close()
-    return selectFormat
+    return selectDataMapList
 
-def createEnumData():
+def createEnumData(insertDataMapList):
     print()
     
-def createSerialNumberData():
-    print()
+def createSerialNumberData(insertRecordLength, insertDataMapList):
+    serialNumberMapList = []
+    for insertDataMap in insertDataMapList:
+        if insertDataMap[InsertParam.DATA_TYPE.value] != InsertDataType.SERIAL_NUMBER.value:
+            continue
+        
+        serialStartNumber = insertDataMap[InsertParam.SERIAL_START_NUMBER.value]
+        serialNumberList = []
+        for i in range(insertRecordLength):
+            serialNumberList.append(serialStartNumber + i)
+        serialNumberMap = {}
+        serialNumberMap[serialParam.INSERT_COLUMN_NAME.value] = insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]
+        serialNumberMap[serialParam.SERIAL_NUMBER_LIST.value] = serialNumberList 
+        serialNumberMapList.append(serialNumberMap)
+    return serialNumberMapList
         
 def createQuery(insertTableName, insertRecordLength, insertDataMapList):
     selectDataMapList = selectMasterData(insertDataMapList)
-    selectDataMapList = generateRundumNumberList(insertRecordLength, selectDataMapList)
-    insertFormat = createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList)
+    serialNumberMapList = createSerialNumberData(insertRecordLength, insertDataMapList)
+    insertFormat = createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList)
     insertQuery = createInsertQuery(insertTableName, insertDataMapList, insertFormat)
     return insertQuery
 
@@ -188,7 +205,7 @@ def saveSqlFile(insertQuery, filePath):
     sqlFormat = formatSqlFile(insertQuery)
     if len(filePath) != 0:
         with open(filePath, "x") as file:
-            file.write(insertQuery)
+            file.write(sqlFormat)
 
 def insertExecute(insertQuery): 
     cnx = None   
