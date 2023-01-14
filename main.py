@@ -45,18 +45,18 @@ class SelectParam(Enum):
     BLANK_ABLE_LIST = "blankAbleList" # need map?
     RUNDOM_INDEX_LIST = "rundumIndexList"
 
-class enumParam(Enum):
+class EnumParam(Enum):
     ENUM_NAME = "enumName"
     ENUM_LIST = "enumList"
     RUNDOM_INDEX_LIST = "rundumIndexList"
 
-class serialParam(Enum):
+class SerialParam(Enum):
     INSERT_COLUMN_NAME = "insertColumnName"
     SERIAL_NUMBER_LIST = "serialNumberList"
 
-class fixParam(Enum):
+class FixParam(Enum):
     INSERT_COLUMN_NAME = "insertColumnName"
-    FIX_PARAM_LIST = "fixParam"
+    FIX_PARAM_LIST = "fixParam" # contain null blank
     RUNDOM_INDEX_LIST = "rundumIndexList"
 
 def createQuery(insertTableName, insertRecordLength, insertDataMapList):
@@ -116,15 +116,15 @@ def createQuery(insertTableName, insertRecordLength, insertDataMapList):
                             break
                 elif (insertDataMap[InsertParam.DATA_TYPE.value] == InsertDataType.SERIAL_NUMBER.value):
                     for serialNumberMap in serialNumberMapList:
-                        if (serialNumberMap[serialParam.INSERT_COLUMN_NAME.value] != insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]):
+                        if (serialNumberMap[SerialParam.INSERT_COLUMN_NAME.value] != insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]):
                             continue
-                        tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = serialNumberMap[serialParam.SERIAL_NUMBER_LIST.value][i]
+                        tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = serialNumberMap[SerialParam.SERIAL_NUMBER_LIST.value][i]
                         break
                 elif (insertDataMap[InsertParam.DATA_TYPE.value] == InsertDataType.FIX.value):
                     for fixDataMap in fixDataMapList:
-                        if (fixDataMap[serialParam.INSERT_COLUMN_NAME.value] != insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]):
+                        if (fixDataMap[SerialParam.INSERT_COLUMN_NAME.value] != insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]):
                             continue
-                        tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = fixDataMap[fixParam.FIX_PARAM_LIST.value][fixDataMap[fixParam.RUNDOM_INDEX_LIST.value][i]]
+                        tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = fixDataMap[FixParam.FIX_PARAM_LIST.value][fixDataMap[FixParam.RUNDOM_INDEX_LIST.value][i]]
                         break
                     
             tableFormatMapList.append(tableFormatMap)
@@ -245,8 +245,8 @@ def createQuery(insertTableName, insertRecordLength, insertDataMapList):
             for i in range(insertRecordLength):
                 serialNumberList.append(serialStartNumber + i)
             serialNumberMap = {}
-            serialNumberMap[serialParam.INSERT_COLUMN_NAME.value] = insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]
-            serialNumberMap[serialParam.SERIAL_NUMBER_LIST.value] = serialNumberList 
+            serialNumberMap[SerialParam.INSERT_COLUMN_NAME.value] = insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]
+            serialNumberMap[SerialParam.SERIAL_NUMBER_LIST.value] = serialNumberList 
             serialNumberMapList.append(serialNumberMap)
         return serialNumberMapList
 
@@ -262,9 +262,9 @@ def createQuery(insertTableName, insertRecordLength, insertDataMapList):
                 fixParamList.append('NULL')
             if insertDataMap[InsertParam.IS_BLANK_ABLE.value]:
                 fixParamList.append('')
-            fixParamMap[fixParam.INSERT_COLUMN_NAME.value] = insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]
-            fixParamMap[fixParam.FIX_PARAM_LIST.value] = fixParamList
-            fixParamMap[fixParam.RUNDOM_INDEX_LIST.value] = generateRundumNumberList(insertRecordLength, fixParamList)
+            fixParamMap[FixParam.INSERT_COLUMN_NAME.value] = insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]
+            fixParamMap[FixParam.FIX_PARAM_LIST.value] = fixParamList
+            fixParamMap[FixParam.RUNDOM_INDEX_LIST.value] = generateRundumNumberList(insertRecordLength, fixParamList)
             fixParamMapList.append(fixParamMap)
         return fixParamMapList
         
