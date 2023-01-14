@@ -27,6 +27,7 @@ class InsertParam(Enum):
     SERIAL_START_NUMBER = "serialStartNumber"
     IS_NULL_ABLE = "isNullAble"
     IS_BLANK_ABLE = "isBlankAble"
+    NEED_QUOTE = "needQuote"
 
 # dataType enum for insert
 class InsertDataType(Enum):
@@ -51,6 +52,10 @@ class serialParam(Enum):
     INSERT_COLUMN_NAME = "insertColumnName"
     SERIAL_NUMBER_LIST = "serialNumberList"
 
+class fixParam(Enum):
+    INSERT_COLUMN_NAME = "insertColumnName"
+    FIX_PARAM = "fixParam"
+
 def generateRundumNumberList(insertRecordLength, targetList):
     rundumIndexList = []
     max = len(targetList) - 1
@@ -70,7 +75,10 @@ def createInsertQuery(insertTableName, insertDataMapList, insertFormat):
     insertValue = "("
     for i, formatMap in enumerate(insertFormat):
         for j, insertDataMap in enumerate(insertDataMapList):
-            insertValue += str(formatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]])
+            param = str(formatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]])
+            if(insertDataMap[InsertParam.NEED_QUOTE.value]):
+                param = "'" + param + "'"
+            insertValue += param
             if j != insertColumnLength - 1:
                 insertValue += ", "
         insertValue += ")"
@@ -80,7 +88,7 @@ def createInsertQuery(insertTableName, insertDataMapList, insertFormat):
     sql = "INSERT INTO " + insertTableName + " (" + insertColumn + ") VALUES " + insertValue + ";"
     return sql
 
-def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList):
+def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList, fixDataMapList):
     tableFormatMapList = []
     for i in range(insertRecordLength):
         tableFormatMap = {}
@@ -101,6 +109,13 @@ def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList,
                         continue
                     tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = serialNumberMap[serialParam.SERIAL_NUMBER_LIST.value][i]
                     break
+            elif (insertDataMap[InsertParam.DATA_TYPE.value] == InsertDataType.FIX.value):
+                for fixDataMap in fixDataMapList:
+                    if (fixDataMap[serialParam.INSERT_COLUMN_NAME.value] != insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]):
+                        continue
+                    tableFormatMap[insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]] = fixDataMap[fixParam.FIX_PARAM.value]
+                    break
+                
         tableFormatMapList.append(tableFormatMap)
     return tableFormatMapList
 
@@ -170,7 +185,7 @@ def selectMasterData(insertDataMapList):
     cursor.close()
     return selectDataMapList
 
-def createEnumData(insertDataMapList):
+def createEnumData(insertRecordLength, insertDataMapList):
     print()
     
 def createSerialNumberData(insertRecordLength, insertDataMapList):
@@ -188,11 +203,23 @@ def createSerialNumberData(insertRecordLength, insertDataMapList):
         serialNumberMap[serialParam.SERIAL_NUMBER_LIST.value] = serialNumberList 
         serialNumberMapList.append(serialNumberMap)
     return serialNumberMapList
+
+def createFixData(insertDataMapList):
+    fixParamMapList = []
+    for insertDataMap in insertDataMapList:
+        if insertDataMap[InsertParam.DATA_TYPE.value] != InsertDataType.FIX.value:
+            continue
+        fixParamMap = {}
+        fixParamMap[fixParam.INSERT_COLUMN_NAME.value] = insertDataMap[InsertParam.INSERT_COLUMN_NAME.value]
+        fixParamMap[fixParam.FIX_PARAM.value] = insertDataMap[InsertParam.FIX_PARAM.value]
+        fixParamMapList.append(fixParamMap)
+    return fixParamMapList
         
 def createQuery(insertTableName, insertRecordLength, insertDataMapList):
     selectDataMapList = selectMasterData(insertDataMapList)
     serialNumberMapList = createSerialNumberData(insertRecordLength, insertDataMapList)
-    insertFormat = createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList)
+    fixDataMapList = createFixData(insertDataMapList)
+    insertFormat = createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList, fixDataMapList)
     insertQuery = createInsertQuery(insertTableName, insertDataMapList, insertFormat)
     return insertQuery
 
