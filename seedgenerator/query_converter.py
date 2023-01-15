@@ -134,6 +134,7 @@ class QueryConverter:
                     host="localhost",
                     database="db_example"
                 )
+            cursor = cnx.cursor()
             
             selectDataMapList = []
             selectFormat = createSelectFormat(insertDataMapList)
@@ -144,7 +145,7 @@ class QueryConverter:
                 masterDataMapList = []
                 
                 sql = createSelectQuery(tableName, columnNameList)
-                cursor = cnx.cursor()
+                
                 param = ()
                 cursor.execute(sql, param)
                 for record in cursor:

@@ -274,7 +274,7 @@ class App(tk.Tk):
             insertDataMap[d.InsertParam.SELECT_COLUMN_NAME.value] = self.selectColumnNameEntries[i].get()
             insertDataMap[d.InsertParam.ENUM_NAME.value] = self.enumNameComboboxes[i].get()
             insertDataMap[d.InsertParam.FIX_PARAM.value] = self.fixParamEntries[i].get()
-            insertDataMap[d.InsertParam.SERIAL_START_NUMBER.value] = self.serialStartNumberEntries[i].get()
+            insertDataMap[d.InsertParam.SERIAL_START_NUMBER.value] = int(self.serialStartNumberEntries[i].get())
             insertDataMap[d.InsertParam.IS_NULL_ABLE.value] = self.isNullBoolList[i].get()
             insertDataMap[d.InsertParam.IS_BLANK_ABLE.value] = self.isBlankBoolList[i].get()
             insertDataMap[d.InsertParam.NEED_QUOTE.value] = self.needQuoteBoolList[i].get()
@@ -282,7 +282,6 @@ class App(tk.Tk):
             insertDataMapList.append(insertDataMap)
         
         return q.createQuery(insertTableName, insertRecordLength, insertDataMapList)
-    
 
 if __name__ == "__main__":
     app = App()
