@@ -15,9 +15,6 @@ class Define:
         IS_BLANK_ABLE = "isBlankAble"
         NEED_QUOTE = "needQuote"
         
-        def getInsertParamList():
-            print()
-
     # dataType enum for insert
     class InsertDataType(Enum):
         TABLE = "table"
@@ -47,3 +44,19 @@ class Define:
         INSERT_COLUMN_NAME = "insertColumnName"
         FIX_PARAM_LIST = "fixParam" # contain null blank
         RUNDOM_INDEX_LIST = "rundumIndexList"
+    
+    # setting enum
+    class Setting(Enum):
+        SETTING_FILE_PATH = "seedgenerator/setting.ini"
+        COMMON = "Common"
+        DATABASE = "Database"
+        ENUM = "Enum"
+    
+    class CommonSetting(Enum):
+        NOT_QUOTE_LIST = "notQuoteList"
+        
+    class DatabaseSetting(Enum):
+        HOST = "host"
+        SCHEMA = "schema"
+        USER = "user"
+        PASSWARD = "password"

@@ -12,9 +12,13 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         
+        # query
+        self.insertQuery = ""
+        self.enumModule = tuple(q.getSettingEnumList())
+        
         # window
-        self.geometry('1300x600')
-        self.title('seed generator')
+        self.geometry("1300x600")
+        self.title("seed generator")
         
         # canvas, scrollWindow, scrollBar
         self.canvas = tk.Canvas(self)
@@ -37,9 +41,9 @@ class App(tk.Tk):
         # topFrame: insertTableName, insertRecordLength, exportButton, executeButton
         self.topLabelFrame = tk.Frame(master=self.scrollable_frame, width=100)
         self.topLabelFrame.pack(side=tk.TOP, fill="x")
-        self.insertTableNameLabel = tk.Label(master=self.topLabelFrame, text='Insert table name', width=17)
+        self.insertTableNameLabel = tk.Label(master=self.topLabelFrame, text="Insert table name", width=17)
         self.insertTableNameLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.insertRecordLengthLabel = tk.Label(master=self.topLabelFrame, text='Insert column length', width=17)
+        self.insertRecordLengthLabel = tk.Label(master=self.topLabelFrame, text="Insert column length", width=17)
         self.insertRecordLengthLabel.pack(side=tk.LEFT, padx=5, pady=5)
         
         self.topFrame = tk.Frame(master=self.scrollable_frame, width=100)
@@ -51,14 +55,14 @@ class App(tk.Tk):
         
         self.exportButton = tk.Button(
             master=self.topFrame,
-            text='Export',
+            text="Export",
             command=lambda:self.startThread(self.exportQuery)
         )
         self.exportButton.pack(side=tk.LEFT, padx=5, pady=5)
         
         self.executeButton = tk.Button(
             master=self.topFrame,
-            text='Execute',
+            text="Execute",
             command=lambda:self.showMessageBox(True, "Confirmation", "Really excute insert query?", self.excuteQuery)
         )
         self.executeButton.pack(side=tk.LEFT, padx=5, pady=5)
@@ -69,33 +73,33 @@ class App(tk.Tk):
             maximum=10,
             value=0,
             length=200,
-            mode='indeterminate')
+            mode="indeterminate")
         
         # mine label frame
         self.mainLabelFrame = tk.Frame(master=self.scrollable_frame, width=100)
         self.mainLabelFrame.pack(side=tk.TOP, fill="x")
         
-        self.insertColumnNameLabel = tk.Label(master=self.mainLabelFrame, text='Insert column name', width=17)
+        self.insertColumnNameLabel = tk.Label(master=self.mainLabelFrame, text="Insert column name", width=17)
         self.insertColumnNameLabel.pack(side=tk.LEFT, padx=5, pady=5)
         
-        self.dataTypeLabel = tk.Label(master=self.mainLabelFrame, text='Data type', width=17)
+        self.dataTypeLabel = tk.Label(master=self.mainLabelFrame, text="Data type", width=17)
         self.dataTypeLabel.pack(side=tk.LEFT, padx=5, pady=5)
         
-        self.selectTableNameLabel = tk.Label(master=self.mainLabelFrame, text='Select table name', width=17)
+        self.selectTableNameLabel = tk.Label(master=self.mainLabelFrame, text="Select table name", width=17)
         self.selectTableNameLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.selectColumnNameLabel = tk.Label(master=self.mainLabelFrame, text='Select column name', width=17)
+        self.selectColumnNameLabel = tk.Label(master=self.mainLabelFrame, text="Select column name", width=17)
         self.selectColumnNameLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.enumNameLabel = tk.Label(master=self.mainLabelFrame, text='Enum name', width=17)
+        self.enumNameLabel = tk.Label(master=self.mainLabelFrame, text="Enum name", width=17)
         self.enumNameLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.fixParamLabel = tk.Label(master=self.mainLabelFrame, text='Fix param', width=17)
+        self.fixParamLabel = tk.Label(master=self.mainLabelFrame, text="Fix param", width=17)
         self.fixParamLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.serialStartNumberLabel = tk.Label(master=self.mainLabelFrame, text='Serial start number', width=17)
+        self.serialStartNumberLabel = tk.Label(master=self.mainLabelFrame, text="Serial start number", width=17)
         self.serialStartNumberLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.inNullAbleLabel = tk.Label(master=self.mainLabelFrame, text='Null contain', width=10)
+        self.inNullAbleLabel = tk.Label(master=self.mainLabelFrame, text="Null contain", width=10)
         self.inNullAbleLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.isBlankAbleLabel = tk.Label(master=self.mainLabelFrame, text='Blank contain', width=10)
+        self.isBlankAbleLabel = tk.Label(master=self.mainLabelFrame, text="Blank contain", width=10)
         self.isBlankAbleLabel.pack(side=tk.LEFT, padx=5, pady=5)
-        self.needQuoteLabel = tk.Label(master=self.mainLabelFrame, text='Need quote', width=10)
+        self.needQuoteLabel = tk.Label(master=self.mainLabelFrame, text="Need quote", width=10)
         self.needQuoteLabel.pack(side=tk.LEFT, padx=5, pady=5)
         
         # mainFrame: other input element
@@ -200,14 +204,12 @@ class App(tk.Tk):
         self.isBlankBoolList.insert(next, tk.BooleanVar())
         self.needQuoteBoolList.insert(next, tk.BooleanVar())
         
-        enumModule = ()
-        
         self.frames.insert(next, tk.Frame(self.mainFrame, width=100))
         self.insertColumnNameEntries.insert(next, tk.Entry(self.frames[next], width=20))
         self.dataTypeComboboxes.insert(next, ttk.Combobox(self.frames[next], textvariable=tk.StringVar(), values=dataTypeModule, style="office.TCombobox", width="17"))
         self.selectTableNameEntries.insert(next, tk.Entry(self.frames[next], width=20))
         self.selectColumnNameEntries.insert(next, tk.Entry(self.frames[next], width=20))
-        self.enumNameComboboxes.insert(next, ttk.Combobox(self.frames[next], textvariable=tk.StringVar(), values=enumModule, style="office.TCombobox", width="17"))
+        self.enumNameComboboxes.insert(next, ttk.Combobox(self.frames[next], textvariable=tk.StringVar(), values=self.enumModule, style="office.TCombobox", width="17"))
         self.fixParamEntries.insert(next, tk.Entry(self.frames[next], width=20))
         self.serialStartNumberEntries.insert(next, tk.Entry(self.frames[next], width=20))
         self.isNullAbleCkButtons.insert(next, tk.Checkbutton(self.frames[next], variable=self.isNullBoolList[next], width=7))
@@ -215,19 +217,19 @@ class App(tk.Tk):
         self.needQuoteCkButtons.insert(next, tk.Checkbutton(self.frames[next], variable=self.needQuoteBoolList[next], width=7))
         self.insertEntries.insert(next, tk.Label(
             self.frames[next],
-            text='+',
-            fg='#33ff33',
-            font=('Arial Black', 20)
+            text="+",
+            fg="#33ff33",
+            font=("Arial Black", 20)
         ))
         self.removeEntries.insert(next, tk.Label(
             self.frames[next],
-            text='-',
-            fg='#ff3333',
-            font=('Arial Black', 20)
+            text="-",
+            fg="#ff3333",
+            font=("Arial Black", 20)
         ))
         
-        self.insertEntries[next].bind('<1>', lambda event, id=self.index: self.insertEntry_click(event, id))
-        self.removeEntries[next].bind('<1>', lambda event, id=self.index: self.removeEntry_click(event, id))
+        self.insertEntries[next].bind("<1>", lambda event, id=self.index: self.insertEntry_click(event, id))
+        self.removeEntries[next].bind("<1>", lambda event, id=self.index: self.removeEntry_click(event, id))
         self.indexes.insert(next, self.index)
         self.updateEntries()
 
@@ -246,8 +248,8 @@ class App(tk.Tk):
         self.pb.pack(side=tk.LEFT)
         self.pb.start()
         
-        query = self.getQuery()
-        print(query)
+        self.insertQuery = self.getQuery()
+        print(self.insertQuery)
         
         self.pb.stop()
         self.pb.pack_forget()
@@ -256,7 +258,7 @@ class App(tk.Tk):
         self.pb.pack(side=tk.LEFT)
         self.pb.start()
         
-        query = self.getQuery()
+        self.insertQuery = self.getQuery()
         
         self.pb.stop()
         self.pb.pack_forget()
@@ -274,7 +276,7 @@ class App(tk.Tk):
             insertDataMap[d.InsertParam.SELECT_COLUMN_NAME.value] = self.selectColumnNameEntries[i].get()
             insertDataMap[d.InsertParam.ENUM_NAME.value] = self.enumNameComboboxes[i].get()
             insertDataMap[d.InsertParam.FIX_PARAM.value] = self.fixParamEntries[i].get()
-            insertDataMap[d.InsertParam.SERIAL_START_NUMBER.value] = int(self.serialStartNumberEntries[i].get())
+            insertDataMap[d.InsertParam.SERIAL_START_NUMBER.value] = self.serialStartNumberEntries[i].get()
             insertDataMap[d.InsertParam.IS_NULL_ABLE.value] = self.isNullBoolList[i].get()
             insertDataMap[d.InsertParam.IS_BLANK_ABLE.value] = self.isBlankBoolList[i].get()
             insertDataMap[d.InsertParam.NEED_QUOTE.value] = self.needQuoteBoolList[i].get()

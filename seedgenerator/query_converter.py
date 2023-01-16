@@ -6,10 +6,32 @@ from mysql.connector import errorcode
 from enum import Enum
 import random
 from define import Define as d
+import json
 
 # TODO:delete format
 class QueryConverter:
+    def getSettingEnumList():
+        if not os.path.exists(d.Setting.SETTING_FILE_PATH.value):
+            raise FileNotFoundError(d.Setting.SETTING_FILE_PATH.value + " is not exist")
+        config = configparser.ConfigParser()
+        config.read(d.Setting.SETTING_FILE_PATH.value)
+        
+        return map(lambda x:x[0], config.items(d.Setting.ENUM.value))
+    
     def createQuery(insertTableName, insertRecordLength, insertDataMapList):
+        if not os.path.exists(d.Setting.SETTING_FILE_PATH.value):
+            raise FileNotFoundError(d.Setting.SETTING_FILE_PATH.value + " is not exist")
+        
+        config = configparser.ConfigParser()
+        config.read(d.Setting.SETTING_FILE_PATH.value)
+        
+        HOST = config[d.Setting.DATABASE.value][d.DatabaseSetting.HOST.value]
+        SCHEMA = config[d.Setting.DATABASE.value][d.DatabaseSetting.SCHEMA.value]
+        USER = config[d.Setting.DATABASE.value][d.DatabaseSetting.USER.value]
+        PASSWORD = config[d.Setting.DATABASE.value][d.DatabaseSetting.PASSWARD.value]
+        
+        NOT_QUOTE_LIST = json.loads(config[d.Setting.COMMON.value][d.CommonSetting.NOT_QUOTE_LIST.value])
+        
         def generateRundumNumberList(insertRecordLength, targetList):
             rundumIndexList = []
             max = len(targetList) - 1
@@ -18,8 +40,7 @@ class QueryConverter:
             return rundumIndexList
         
         def addQuote(value):
-            notQuoteList = ["NULL", "''"]
-            if value in notQuoteList:
+            if value in NOT_QUOTE_LIST:
                 return value
             value = "'" + value + "'"
             return value
@@ -49,11 +70,12 @@ class QueryConverter:
             sql = "INSERT INTO " + insertTableName + " (" + insertColumn + ") VALUES " + insertValue + ";"
             return sql
 
-        def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList, fixDataMapList):
+        def createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, enumMapList, serialNumberMapList, fixDataMapList):
             tableFormatMapList = []
             for i in range(insertRecordLength):
                 tableFormatMap = {}
                 for insertDataMap in insertDataMapList:
+                    # master data
                     if (insertDataMap[d.InsertParam.DATA_TYPE.value] == d.InsertDataType.TABLE.value):
                         for selectDataMap in selectDataMapList:
                             if (selectDataMap[d.SelectParam.TABLE_NAME.value] != insertDataMap[d.InsertParam.SELECT_TABLE_NAME.value]):
@@ -64,12 +86,21 @@ class QueryConverter:
                                     continue
                                 tableFormatMap[insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]] = selectDataMap[d.SelectParam.SELECT_DATA.value][selectDataMap[d.SelectParam.RUNDOM_INDEX_LIST.value][i]][columnNameList[l]]
                                 break
+                    # enum
+                    elif (insertDataMap[d.InsertParam.DATA_TYPE.value] == d.InsertDataType.ENUM.value):
+                        for enumMap in enumMapList:
+                            if (enumMap[d.EnumParam.ENUM_NAME.value] != insertDataMap[d.InsertParam.ENUM_NAME.value]):
+                                continue
+                            tableFormatMap[insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]] = enumMap[d.EnumParam.ENUM_LIST.value][enumMap[d.EnumParam.RUNDOM_INDEX_LIST.value][i]]
+                            break
+                    # serial number
                     elif (insertDataMap[d.InsertParam.DATA_TYPE.value] == d.InsertDataType.SERIAL_NUMBER.value):
                         for serialNumberMap in serialNumberMapList:
                             if (serialNumberMap[d.SerialParam.INSERT_COLUMN_NAME.value] != insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]):
                                 continue
                             tableFormatMap[insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]] = serialNumberMap[d.SerialParam.SERIAL_NUMBER_LIST.value][i]
                             break
+                    # fix param
                     elif (insertDataMap[d.InsertParam.DATA_TYPE.value] == d.InsertDataType.FIX.value):
                         for fixDataMap in fixDataMapList:
                             if (fixDataMap[d.SerialParam.INSERT_COLUMN_NAME.value] != insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]):
@@ -126,13 +157,13 @@ class QueryConverter:
                     columnSelect += ", "
             return ("SELECT " + columnSelect + " FROM " + tableName)
 
-        def selectMasterData(insertDataMapList):
+        def selectMasterData(insertRecordLength, insertDataMapList):
             cnx = None   
             cnx = mysql.connector.connect(
-                    user="root",
-                    password="root",
-                    host="localhost",
-                    database="db_example"
+                    user=USER,
+                    password=PASSWORD,
+                    host=HOST,
+                    database=SCHEMA
                 )
             cursor = cnx.cursor()
             
@@ -161,7 +192,7 @@ class QueryConverter:
                     otherIndex = random.randint(0, columnNameListLength)
                     for i, columnName in enumerate(columnNameList):
                         if selectTableMap[d.SelectParam.NULL_ABLE_LIST.value][i]:
-                            nullMap[columnName] = 'NULL'
+                            nullMap[columnName] = "NULL"
                         else:
                             nullMap[columnName] = masterDataMapList[otherIndex][columnName]
                     masterDataMapList.append(nullMap)
@@ -183,7 +214,21 @@ class QueryConverter:
             return selectDataMapList
 
         def createEnumData(insertRecordLength, insertDataMapList):
-            print()
+            enumMapList = []
+            for insertDataMap in insertDataMapList:
+                if insertDataMap[d.InsertParam.DATA_TYPE.value] != d.InsertDataType.ENUM.value:
+                    continue
+                enumMap = {}
+                enumList = json.loads(config[d.Setting.ENUM.value][insertDataMap[d.InsertParam.ENUM_NAME.value]])
+                if insertDataMap[d.InsertParam.IS_NULL_ABLE.value]:
+                    enumList.append("NULL")
+                if insertDataMap[d.InsertParam.IS_BLANK_ABLE.value]:
+                    enumList.append('')
+                enumMap[d.EnumParam.ENUM_NAME.value] = insertDataMap[d.InsertParam.ENUM_NAME.value]
+                enumMap[d.EnumParam.ENUM_LIST.value] = enumList
+                enumMap[d.EnumParam.RUNDOM_INDEX_LIST.value] = generateRundumNumberList(insertRecordLength, enumList)
+                enumMapList.append(enumMap)
+            return enumMapList
             
         def createSerialNumberData(insertRecordLength, insertDataMapList):
             serialNumberMapList = []
@@ -210,7 +255,7 @@ class QueryConverter:
                 fixParamList = []
                 fixParamList.append(insertDataMap[d.InsertParam.FIX_PARAM.value])
                 if insertDataMap[d.InsertParam.IS_NULL_ABLE.value]:
-                    fixParamList.append('NULL')
+                    fixParamList.append("NULL")
                 if insertDataMap[d.InsertParam.IS_BLANK_ABLE.value]:
                     fixParamList.append('')
                 fixParamMap[d.FixParam.INSERT_COLUMN_NAME.value] = insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]
@@ -219,31 +264,39 @@ class QueryConverter:
                 fixParamMapList.append(fixParamMap)
             return fixParamMapList
             
-        selectDataMapList = selectMasterData(insertDataMapList)
+        selectDataMapList = selectMasterData(insertRecordLength, insertDataMapList)
+        enumMapList = createEnumData(insertRecordLength, insertDataMapList)
         serialNumberMapList = createSerialNumberData(insertRecordLength, insertDataMapList)
         fixDataMapList = createFixData(insertRecordLength, insertDataMapList)
-        insertFormat = createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, serialNumberMapList, fixDataMapList)
+        insertFormat = createInsertFormat(insertRecordLength, insertDataMapList, selectDataMapList, enumMapList, serialNumberMapList, fixDataMapList)
         insertQuery = createInsertQuery(insertTableName, insertDataMapList, insertFormat)
         return insertQuery
 
     def saveSqlFile(insertQuery, filePath):
-        def formatSqlFile(insertQuery:str):
-            sqlFormat = insertQuery.replace(') VALUES ', ') \nVALUES \n')
-            sqlFormat = sqlFormat.replace('), ', '), \n')
-            return sqlFormat
+        sqlFormat = insertQuery.replace(") VALUES ", ") \nVALUES \n")
+        sqlFormat = sqlFormat.replace("), ", "), \n")
         
-        sqlFormat = formatSqlFile(insertQuery)
         if len(filePath) != 0:
             with open(filePath, "x") as file:
                 file.write(sqlFormat)
 
     def insertExecute(insertQuery): 
+        if not os.path.exists(d.Setting.SETTING_FILE_PATH.value):
+            raise FileNotFoundError(d.Setting.SETTING_FILE_PATH.value + " is not exist")
+        
+        config = configparser.ConfigParser()
+        config.read(d.Setting.SETTING_FILE_PATH.value)
+        
+        HOST = config[d.Setting.DATABASE.value][d.DatabaseSetting.HOST.value]
+        SCHEMA = config[d.Setting.DATABASE.value][d.DatabaseSetting.SCHEMA.value]
+        USER = config[d.Setting.DATABASE.value][d.DatabaseSetting.USER.value]
+        PASSWORD = config[d.Setting.DATABASE.value][d.DatabaseSetting.PASSWARD.value]
         cnx = None   
         cnx = mysql.connector.connect(
-                user="root",
-                password="root",
-                host="localhost",
-                database="db_example"
+                user=USER,
+                password=PASSWORD,
+                host=HOST,
+                database=SCHEMA
             )
         cursor = cnx.cursor()
         cursor.execute(insertQuery)
