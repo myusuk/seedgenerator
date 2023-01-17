@@ -9,6 +9,7 @@ import traceback
 from query_converter import QueryConverter as q
 from enum import Enum
 from define import Define as d
+from subwindow import SubWindow as sub
 
 class App(tk.Tk):
     def __init__(self):
@@ -22,6 +23,15 @@ class App(tk.Tk):
         self.geometry("1300x600")
         self.title("seed generator")
         
+        # menu
+        menubar = tk.Menu(self)
+        self.configure(menu = menubar)
+        filemenu = tk.Menu(menubar, tearoff = 0)
+        menubar.add_cascade(label = "File", menu = filemenu)
+        filemenu.add_command(label = "Setting", command = lambda: sub())
+        filemenu.add_separator()
+        filemenu.add_command(label = "Exit", command = lambda: self.destroy())
+
         # canvas, scrollWindow, scrollBar
         self.canvas = tk.Canvas(self)
         self.scrollable_frame = ttk.Frame(self.canvas)
@@ -235,6 +245,9 @@ class App(tk.Tk):
         self.removeEntries[next].bind("<1>", lambda event, id=self.index: self.removeEntry_click(event, id))
         self.indexes.insert(next, self.index)
         self.updateEntries()
+        
+    def showRequiredWidget(self, insertDataType):
+        print()
     
     def showAlertMessageBox(self, title, message):
         messagebox.showerror(title, message)
