@@ -5,6 +5,7 @@ from tkinter import HORIZONTAL, N, S, E, W
 from tkinter import ttk
 from tkinter import filedialog
 import threading
+import traceback
 from query_converter import QueryConverter as q
 from enum import Enum
 from define import Define as d
@@ -64,7 +65,7 @@ class App(tk.Tk):
         self.executeButton = tk.Button(
             master=self.topFrame,
             text="Execute",
-            command=lambda:self.showMessageBox(True, "Confirmation", "Really excute insert query?", self.excuteQuery)
+            command=lambda:self.showAskMessageBox(True, "Confirmation", "Really excute insert query?", self.excuteQuery)
         )
         self.executeButton.pack(side=tk.LEFT, padx=5, pady=5)
         
@@ -234,8 +235,11 @@ class App(tk.Tk):
         self.removeEntries[next].bind("<1>", lambda event, id=self.index: self.removeEntry_click(event, id))
         self.indexes.insert(next, self.index)
         self.updateEntries()
+    
+    def showAlertMessageBox(self, title, message):
+        messagebox.showerror(title, message)
 
-    def showMessageBox(self, needThread, title, message, targetFunc):
+    def showAskMessageBox(self, needThread, title, message, targetFunc):
         ret = messagebox.askokcancel(title, message)
         if ret:
             if needThread:
@@ -250,11 +254,13 @@ class App(tk.Tk):
     def exportQuery(self):
         self.pb.pack(side=tk.LEFT)
         self.pb.start()
-        
-        self.insertQuery = self.getQuery()
-        typ = [("Sql", "*.sql")]
-        filePath = filedialog.asksaveasfilename(filetypes=typ, defaultextension="sql")
-        q.saveSqlFile(self.insertQuery, filePath)
+        try:
+            self.insertQuery = self.getQuery()
+            typ = [("Sql", "*.sql")]
+            filePath = filedialog.asksaveasfilename(filetypes=typ, defaultextension="sql")
+            q.saveSqlFile(self.insertQuery, filePath)
+        except Exception as e:
+            self.showAlertMessageBox(e.__class__.__name__, traceback.format_exc())
         
         self.pb.stop()
         self.pb.pack_forget()
@@ -263,10 +269,12 @@ class App(tk.Tk):
     def excuteQuery(self):
         self.pb.pack(side=tk.LEFT)
         self.pb.start()
-        
-        self.insertQuery = self.getQuery()
-        q.insertExecute(self.insertQuery)
-        
+        try:
+            self.insertQuery = self.getQuery()
+            q.insertExecute(self.insertQuery)
+        except Exception as e:
+            self.showAlertMessageBox(e.__class__.__name__, traceback.format_exc())
+            
         self.pb.stop()
         self.pb.pack_forget()
         
