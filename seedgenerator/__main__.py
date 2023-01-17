@@ -3,6 +3,7 @@ import tkinter as tk
 from tkinter import messagebox
 from tkinter import HORIZONTAL, N, S, E, W
 from tkinter import ttk
+from tkinter import filedialog
 import threading
 from query_converter import QueryConverter as q
 from enum import Enum
@@ -135,6 +136,7 @@ class App(tk.Tk):
         self.index = self.index + 1
         self.createEntry(next)
     
+    # remove widget and wdget manager
     def removeEntry_click(self, event, id):
         current = self.indexes.index(id)
 
@@ -173,7 +175,7 @@ class App(tk.Tk):
 
         self.updateEntries()
         
-    # need edit
+    # widget pack
     def updateEntries(self):
         for i in range(len(self.indexes)):
             self.frames[i].pack(side=tk.TOP, fill="x")
@@ -193,7 +195,7 @@ class App(tk.Tk):
         if len(self.indexes) == 1:
             self.removeEntries[0].pack_forget()
     
-    # need edit
+    # widget create
     def createEntry(self, next):
         dataTypeList = []
         for e in d.InsertDataType:
@@ -244,21 +246,26 @@ class App(tk.Tk):
         t = threading.Thread(target=targetFunc) 
         t.start() 
         
+    # export sql file
     def exportQuery(self):
         self.pb.pack(side=tk.LEFT)
         self.pb.start()
         
         self.insertQuery = self.getQuery()
-        print(self.insertQuery)
+        typ = [("Sql", "*.sql")]
+        filePath = filedialog.asksaveasfilename(filetypes=typ, defaultextension="sql")
+        q.saveSqlFile(self.insertQuery, filePath)
         
         self.pb.stop()
         self.pb.pack_forget()
     
+    # excute insert query
     def excuteQuery(self):
         self.pb.pack(side=tk.LEFT)
         self.pb.start()
         
         self.insertQuery = self.getQuery()
+        q.insertExecute(self.insertQuery)
         
         self.pb.stop()
         self.pb.pack_forget()

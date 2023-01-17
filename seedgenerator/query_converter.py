@@ -223,7 +223,7 @@ class QueryConverter:
                 if insertDataMap[d.InsertParam.IS_NULL_ABLE.value]:
                     enumList.append("NULL")
                 if insertDataMap[d.InsertParam.IS_BLANK_ABLE.value]:
-                    enumList.append('')
+                    enumList.append("''")
                 enumMap[d.EnumParam.ENUM_NAME.value] = insertDataMap[d.InsertParam.ENUM_NAME.value]
                 enumMap[d.EnumParam.ENUM_LIST.value] = enumList
                 enumMap[d.EnumParam.RUNDOM_INDEX_LIST.value] = generateRundumNumberList(insertRecordLength, enumList)
@@ -236,7 +236,7 @@ class QueryConverter:
                 if insertDataMap[d.InsertParam.DATA_TYPE.value] != d.InsertDataType.SERIAL_NUMBER.value:
                     continue
                 
-                serialStartNumber = insertDataMap[d.InsertParam.SERIAL_START_NUMBER.value]
+                serialStartNumber = int(insertDataMap[d.InsertParam.SERIAL_START_NUMBER.value])
                 serialNumberList = []
                 for i in range(insertRecordLength):
                     serialNumberList.append(serialStartNumber + i)
@@ -257,7 +257,7 @@ class QueryConverter:
                 if insertDataMap[d.InsertParam.IS_NULL_ABLE.value]:
                     fixParamList.append("NULL")
                 if insertDataMap[d.InsertParam.IS_BLANK_ABLE.value]:
-                    fixParamList.append('')
+                    fixParamList.append("''")
                 fixParamMap[d.FixParam.INSERT_COLUMN_NAME.value] = insertDataMap[d.InsertParam.INSERT_COLUMN_NAME.value]
                 fixParamMap[d.FixParam.FIX_PARAM_LIST.value] = fixParamList
                 fixParamMap[d.FixParam.RUNDOM_INDEX_LIST.value] = generateRundumNumberList(insertRecordLength, fixParamList)
