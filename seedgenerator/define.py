@@ -47,7 +47,7 @@ class Define:
     
     # setting enum
     class Setting(Enum):
-        SETTING_FILE_PATH = "seedgenerator/setting.ini"
+        SETTING_FILE_PATH = "config/setting.ini"
         COMMON = "Common"
         DATABASE = "Database"
         ENUM = "Enum"
