@@ -17,7 +17,7 @@ class App(tk.Tk):
         
         # query
         self.insertQuery = ""
-        self.enumModule = tuple(q.getSettingEnumList())
+        self.enumModule = tuple(q.getSettingEnumMap())
         
         # window
         self.geometry("1300x600")
@@ -246,6 +246,7 @@ class App(tk.Tk):
         self.indexes.insert(next, self.index)
         self.updateEntries()
         
+    # TODO: hide not need component
     def showRequiredWidget(self, insertDataType):
         print()
     

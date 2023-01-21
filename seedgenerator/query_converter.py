@@ -10,7 +10,7 @@ import json
 
 # TODO:delete format
 class QueryConverter:
-    def getSettingEnumList():
+    def getSettingEnumMap():
         if not os.path.exists(d.Setting.SETTING_FILE_PATH.value):
             raise FileNotFoundError(d.Setting.SETTING_FILE_PATH.value + " is not exist")
         config = configparser.ConfigParser()
@@ -312,6 +312,20 @@ class QueryConverter:
         config.set(d.Setting.DATABASE.value, d.DatabaseSetting.SCHEMA.value, schema)
         config.set(d.Setting.DATABASE.value, d.DatabaseSetting.USER.value, username)
         config.set(d.Setting.DATABASE.value, d.DatabaseSetting.PASSWARD.value, password)
+        
+        with open(d.Setting.SETTING_FILE_PATH.value, "w") as file:
+            config.write(file)
+
+    def settingEnumConfig(targetEnumName, editEnumName, enumParamList):
+        if not os.path.exists(d.Setting.SETTING_FILE_PATH.value):
+            raise FileNotFoundError(d.Setting.SETTING_FILE_PATH.value + " is not exist")
+        
+        config = configparser.ConfigParser()
+        config.read(d.Setting.SETTING_FILE_PATH.value)
+        if targetEnumName != "New":
+            config.remove_option(d.Setting.ENUM.value, targetEnumName)
+        config.set(d.Setting.ENUM.value, editEnumName, str(enumParamList))
+        
         
         with open(d.Setting.SETTING_FILE_PATH.value, "w") as file:
             config.write(file)
