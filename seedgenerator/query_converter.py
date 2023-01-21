@@ -302,3 +302,17 @@ class QueryConverter:
         cursor.execute(insertQuery)
         cursor.close()
     
+    def settingDatabaseConfig(host, schema, username, password):
+        if not os.path.exists(d.Setting.SETTING_FILE_PATH.value):
+            raise FileNotFoundError(d.Setting.SETTING_FILE_PATH.value + " is not exist")
+        
+        config = configparser.ConfigParser()
+        config.read(d.Setting.SETTING_FILE_PATH.value)
+        config.set(d.Setting.DATABASE.value, d.DatabaseSetting.HOST.value, host)
+        config.set(d.Setting.DATABASE.value, d.DatabaseSetting.SCHEMA.value, schema)
+        config.set(d.Setting.DATABASE.value, d.DatabaseSetting.USER.value, username)
+        config.set(d.Setting.DATABASE.value, d.DatabaseSetting.PASSWARD.value, password)
+        
+        with open(d.Setting.SETTING_FILE_PATH.value, "w") as file:
+            config.write(file)
+    

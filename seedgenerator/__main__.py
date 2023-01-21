@@ -1,7 +1,7 @@
 #coding: utf-8
 import tkinter as tk
 from tkinter import messagebox
-from tkinter import HORIZONTAL, N, S, E, W
+from tkinter import HORIZONTAL
 from tkinter import ttk
 from tkinter import filedialog
 import threading
@@ -87,7 +87,7 @@ class App(tk.Tk):
             length=200,
             mode="indeterminate")
         
-        # mine label frame
+        # main label frame
         self.mainLabelFrame = tk.Frame(master=self.scrollable_frame, width=100)
         self.mainLabelFrame.pack(side=tk.TOP, fill="x")
         

@@ -53,7 +53,7 @@ class Define:
         ENUM = "Enum"
     
     class CommonSetting(Enum):
-        NOT_QUOTE_LIST = "notQuoteList"
+        NOT_QUOTE_LIST = "not_quote_list"
         
     class DatabaseSetting(Enum):
         HOST = "host"
