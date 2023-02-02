@@ -300,6 +300,7 @@ class QueryConverter:
             )
         cursor = cnx.cursor()
         cursor.execute(insertQuery)
+        cnx.commit()
         cursor.close()
     
     def settingDatabaseConfig(host, schema, username, password):

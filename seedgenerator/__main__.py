@@ -258,7 +258,8 @@ class App(tk.Tk):
         if ret:
             if needThread:
                 self.startThread(targetFunc)
-            targetFunc()
+            else: 
+                targetFunc()
     
     def startThread(self, targetFunc):
         t = threading.Thread(target=targetFunc) 
